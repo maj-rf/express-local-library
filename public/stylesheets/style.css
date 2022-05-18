@@ -16,3 +16,7 @@ ul {
   padding: 0;
   list-style: none;
 }
+
+.sidebar-nav > * {
+  margin-top: 0.2rem;
+}
