@@ -32,7 +32,7 @@ AuthorSchema.virtual('lifespan').get(function () {
   const deathFormatted = DateTime.fromJSDate(this.date_of_death).toLocaleString(
     DateTime.DATETIME_MED
   );
-  if (!this.date_of_birth && !this.date_of_death) return 'No Data';
+  if (!this.date_of_birth && !this.date_of_death) return 'No Birth/Death Date';
   if (this.date_of_death)
     return this.date_of_birth ? bdayFormatted + ' - ' + deathFormatted : 'xxx';
   else return bdayFormatted + ' - xxx';
