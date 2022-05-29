@@ -183,7 +183,17 @@ exports.author_delete_post = function (req, res, next) {
 };
 
 exports.author_update_get = function (req, res) {
-  res.send('NOT IMPLEMENTED: Author update GET');
+  // Get book, authors and genres for form.
+  Author.findById(req.params.id).exec(function (err, author) {
+    if (err) {
+      return next(err);
+    }
+    // Success.
+    res.render('author_form', {
+      title: 'Update Author',
+      author: author,
+    });
+  });
 };
 
 exports.author_update_post = function (req, res) {
