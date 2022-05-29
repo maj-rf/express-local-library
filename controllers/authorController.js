@@ -190,12 +190,79 @@ exports.author_update_get = function (req, res) {
     }
     // Success.
     res.render('author_form', {
-      title: 'Update Author',
+      title: 'Update Author: ' + author.first_name + ' ' + author.family_name,
       author: author,
     });
   });
 };
 
-exports.author_update_post = function (req, res) {
-  res.send('NOT IMPLEMENTED: Author update POST');
-};
+exports.author_update_post = [
+  // Validate and sanitize fields.
+  body('first_name', 'First Name must not be empty.')
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
+  body('family_name', 'Last Name must not be empty.')
+    .trim()
+    .isLength({ min: 1 })
+    .isAlphanumeric()
+    .withMessage('First name has non-alphanumeric characters.')
+    .escape(),
+  body('date_of_birth', 'Invalid date of birth.')
+    .optional({ checkFalsy: true })
+    .isISO8601()
+    .toDate(),
+  body('date_of_death', 'Invalid date of death.')
+    .optional({ checkFalsy: true })
+    .isISO8601()
+    .toDate(),
+
+  // Process request after validation and sanitization.
+  (req, res, next) => {
+    // Extract the validation errors from a request.
+    const errors = validationResult(req);
+
+    // Create an Author object with escaped/trimmed data and old id.
+    const author = new Author({
+      first_name: req.body.first_name,
+      family_name: req.body.family_name,
+      date_of_birth: req.body.date_of_birth,
+      date_of_death: req.body.date_of_death,
+      _id: req.params.id, //This is required, or a new ID will be assigned!
+    });
+
+    if (!errors.isEmpty()) {
+      // There are errors. Render form again with sanitized values/error messages.
+      // Get specific author
+      Author.findById(req.params.id).exec(function (err, currentAuthor) {
+        if (err) {
+          return next(err);
+        }
+        res.render('author_form', {
+          title:
+            'Update Author: ' +
+            currentAuthor.first_name +
+            ' ' +
+            currentAuthor.family_name,
+          author: currentAuthor,
+          errors: errors.array(),
+        });
+      });
+      return;
+    } else {
+      // Data from form is valid. Update the record.
+      Author.findByIdAndUpdate(
+        req.params.id,
+        author,
+        {},
+        function (err, theauthor) {
+          if (err) {
+            return next(err);
+          }
+          // Successful - redirect to author detail page.
+          res.redirect(theauthor.url);
+        }
+      );
+    }
+  },
+];
