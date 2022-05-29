@@ -197,7 +197,35 @@ exports.book_create_post = [
 ];
 
 exports.book_delete_get = function (req, res) {
-  res.send('NOT IMPLEMENTED: Book delete GET');
+  async.parallel(
+    {
+      book: function (callback) {
+        Book.findById(req.params.id).exec(callback);
+      },
+      book_instance: function (callback) {
+        BookInstance.find({ book: req.params.id })
+          .populate('book') //populate with the Book Model/Schema
+          .exec(callback);
+      },
+    },
+    function (err, results) {
+      if (err) {
+        return next(err);
+      }
+      if (results.book == null) {
+        // No results.
+        var err = new Error('Book not found');
+        err.status = 404;
+        return next(err);
+      }
+      // Successful, so render.
+      res.render('book_delete', {
+        title: results.book.title,
+        book: results.book,
+        book_instances: results.book_instance,
+      });
+    }
+  );
 };
 
 exports.book_delete_post = function (req, res) {
