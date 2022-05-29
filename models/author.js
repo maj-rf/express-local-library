@@ -43,5 +43,14 @@ AuthorSchema.virtual('url').get(function () {
   return '/catalog/author/' + this._id;
 });
 
+//use DateTime to properly format Dates and insert to update forms
+AuthorSchema.virtual('date_of_birth_formatted').get(function () {
+  return DateTime.fromJSDate(this.date_of_birth).toISODate(); //format 'YYYY-MM-DD'
+});
+
+AuthorSchema.virtual('date_of_death_formatted').get(function () {
+  return DateTime.fromJSDate(this.date_of_death).toISODate(); //format 'YYYY-MM-DD'
+});
+
 //Export model
 module.exports = mongoose.model('Author', AuthorSchema);
