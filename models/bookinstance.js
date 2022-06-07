@@ -22,8 +22,12 @@ BookInstanceSchema.virtual('url').get(function () {
 
 BookInstanceSchema.virtual('due_back_formatted').get(function () {
   return DateTime.fromJSDate(this.due_back).toLocaleString(
-    DateTime.DATETIME_MED
+    DateTime.DATETIME_MED // make date more concise and readable
   );
+});
+
+BookInstanceSchema.virtual('due_back_reformat').get(function () {
+  return DateTime.fromJSDate(this.due_back).toISODate(); //format 'YYYY-MM-DD' and return it to form
 });
 
 //Export model
