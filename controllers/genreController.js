@@ -58,7 +58,10 @@ exports.genre_create_get = function (req, res, next) {
 // Handle Genre create on POST.
 exports.genre_create_post = [
   // Validate and sanitize the name field.
-  body('name', 'Genre name required').trim().isLength({ min: 1 }).escape(),
+  body('name', 'Genre name must be specified')
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
 
   // Process request after validation and sanitization.
   (req, res, next) => {
@@ -167,9 +170,55 @@ exports.genre_delete_post = function (req, res) {
 };
 
 exports.genre_update_get = function (req, res) {
-  res.send('NOT IMPLEMENTED: Genre update GET');
+  Genre.findById(req.params.id).exec(function (err, selected_genre) {
+    if (err) {
+      return next(err);
+    }
+    //Successful, so render
+    res.render('genre_form', {
+      title: 'Update Genre: ' + selected_genre.name,
+      genre: selected_genre,
+    });
+  });
 };
 
-exports.genre_update_post = function (req, res) {
-  res.send('NOT IMPLEMENTED: Genre update POST');
-};
+exports.genre_update_post = [
+  //Validate and Sanitize
+  body('name', 'Genre name must be specified and at least 3 characters')
+    .trim()
+    .isLength({ min: 3 })
+    .escape(),
+  (req, res, next) => {
+    const errors = validationResult(req);
+
+    // Create a BookInstance object with escaped and trimmed data.
+    const genre = new Genre({
+      name: req.body.name,
+      _id: req.params.id, //This is required, or a new ID will be assigned!
+    });
+
+    if (!errors.isEmpty()) {
+      // There are errors. Render the form again with sanitized values/error messages.
+      res.render('genre_form', {
+        title: 'Update Genre',
+        genre: genre,
+        errors: errors.array(),
+      });
+      return;
+    } else {
+      // Data from form is valid. Update the record.
+      Genre.findByIdAndUpdate(
+        req.params.id,
+        genre,
+        {},
+        function (err, thegenre) {
+          if (err) {
+            return next(err);
+          }
+          // Successful - redirect to genre detail page.
+          res.redirect(thegenre.url);
+        }
+      );
+    }
+  },
+];
